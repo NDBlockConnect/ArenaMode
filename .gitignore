@@ -1,0 +1,49 @@
+# Gradle
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+
+# Minecraft dev runtime
+run/
+runs/
+logs/
+*.log
+
+# Local toolchain (JDKs, downloaded archives)
+.tools/
+
+# JVM crash dumps
+hs_err_pid*
+replay_pid*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent/tool session data (never committed)
+.opencode-data/
+.qwen-agent-sessions/
+.trae/
+.claude/
+.cherry_migration/
+
+# Local verification artifacts (logs, screenshots, capability dumps)
+_test-artifacts/
+despotes-oplog.jsonl
+
+# Workspace skill copies and bundled toolchain binaries. These are restored from the
+# bc-developmentndebugging skill, not tracked here.
+.devres/
+_devres/

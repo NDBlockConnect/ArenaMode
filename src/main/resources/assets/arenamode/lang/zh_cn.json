@@ -1,0 +1,10 @@
+{
+  "arenamode.name": "角斗场",
+  "item.arenamode.arena_rod": "角斗钓竿",
+  "item.arenamode.arena_rod.start": "右键：开始决斗",
+  "item.arenamode.arena_rod.stop": "潜行 + 右键：结束并清场",
+  "arenamode.command.start": "角斗场已开始：%s 个波次，半径 %s 格。",
+  "arenamode.command.stop": "角斗场已停止。",
+  "arenamode.command.none": "你当前没有进行中的角斗场。",
+  "arenamode.command.wave": "波次 %s/%s：%s × %s，持续 %s 秒"
+}

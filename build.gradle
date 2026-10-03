@@ -1,0 +1,63 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+}
+
+version = mod_version + '-JE-1.21.11-Fabric'
+group = maven_group
+
+base {
+    archivesName = 'ArenaMode'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    maven {
+        name = 'Mojang'
+        url = 'https://libraries.minecraft.net/'
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    // Mojang official mappings, matching the rest of the BlockConnect Minecraft line.
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    // BetterPeaceMode supplies the shared settings screen and the grudge ledger this mod builds on.
+    // Compile-only on purpose: the jar is not bundled, the player installs BetterPeaceMode itself
+    // and fabric.mod.json declares the dependency.
+    modCompileOnly files("libs/${bpm_artifact}")
+}
+
+loom {
+    mixin {
+        useLegacyMixinAp = true
+        defaultRefmapName = 'arenamode.refmap.json'
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+processResources {
+    inputs.property 'version', mod_semver
+    filesMatching('fabric.mod.json') {
+        expand version: mod_semver, maven_group: maven_group
+    }
+}
+
+jar {
+    archiveBaseName = 'ArenaMode'
+}

@@ -1,0 +1,10 @@
+{
+  "arenamode.name": "ArenaMode",
+  "item.arenamode.arena_rod": "Arena Rod",
+  "item.arenamode.arena_rod.start": "Use: start the duel",
+  "item.arenamode.arena_rod.stop": "Sneak + use: stop it",
+  "arenamode.command.start": "Arena started: %s wave(s), radius %s blocks.",
+  "arenamode.command.stop": "Arena stopped.",
+  "arenamode.command.none": "No arena is running for you.",
+  "arenamode.command.wave": "Wave %s/%s: %s x%s for %ss"
+}

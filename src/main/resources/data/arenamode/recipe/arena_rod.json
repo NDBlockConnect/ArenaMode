@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": "minecraft:diamond",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "  D",
+    " SD",
+    "S  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "arenamode:arena_rod"
+  }
+}

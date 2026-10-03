@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "arenamode",
+  "version": "${version}",
+  "name": "ArenaMode",
+  "description": "Turn any spot into a gladiator arena: configure waves of entities with a count and a duration, rotate them (endlessly and/or in a fair random order) and fight inside a square boundary nothing can cross.",
+  "authors": ["StarsailsClover"],
+  "contact": {
+    "homepage": "https://github.com/NDBlockConnect/ArenaMode",
+    "sources": "https://github.com/NDBlockConnect/ArenaMode",
+    "issues": "https://github.com/NDBlockConnect/ArenaMode/issues"
+  },
+  "license": "Apache-2.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["${maven_group}.arenamode.ArenaMode"],
+    "client": ["${maven_group}.arenamode.client.ArenaModeClient"]
+  },
+  "mixins": ["arenamode.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": ">=0.141.6",
+    "betterpeacemode": ">=26.0.0-Alpha.5"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}
