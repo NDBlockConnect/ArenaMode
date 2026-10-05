@@ -8,6 +8,31 @@
 
 ---
 
+## {ChangeTime: 2026.10.05-14:45:00} StrayEntitiesAndHardCap
+
+GitCommitHash: fix/stray-entity-cap
+
+ChangedFiles:
+```
+.\gradle.properties +2 -2
+.\src\main\java\dev\blockconnect\arenamode\core\ArenaManager.java +71 -0
+.\src\main\java\dev\blockconnect\arenamode\core\ArenaSession.java +51 -3
+.\README.md +6 -0
+.\README.zh.md +6 -0
+```
+
+ChangeLog:
+Num|File Name|Change Description|Change Time|Changer
+----|----|----|----|----
+1|ArenaSession.java|New: a stray bucket for arena-tagged entities no wave claims, counted by `aliveTotal` and pruned with everything else|2026.10.05-14:45:00|StarsailsClover
+2|ArenaManager.java|New: an adoption pass each second claims untracked tagged entities - by entity type when a wave uses it, otherwise as a stray - and re-arms hostility and containment for them|2026.10.05-14:45:00|StarsailsClover
+3|ArenaManager.java|Fix: the entity cap is now hard - a stray that appears while the arena is already full is discarded instead of pushing the population past `maxEntities`|2026.10.05-14:45:00|StarsailsClover
+4|README.md README.zh.md|Docs: the cap counts splits and other indirect spawns|2026.10.05-14:45:00|StarsailsClover
+
+version: v26.0-Alpha.2
+
+---
+
 ## {ChangeTime: 2026.10.04-05:40:00} GladiatorArena
 
 GitCommitHash: initial

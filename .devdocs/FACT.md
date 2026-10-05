@@ -5,6 +5,51 @@
 
 ---
 
+## {FACTTime: 2026.10.05-14:40:00} SoakTestFoundTheStrayLeak {FACTNum 3}
+
+GitCommitHashRange: fix/stray-entity-cap (unmerged)
+
+Files:
+```
+.\src\main\java\dev\blockconnect\arenamode\core\ArenaManager.java
+.\src\main\java\dev\blockconnect\arenamode\core\ArenaSession.java
+```
+
+### What's Happened?
+A six-minute soak (4 waves of 20 s, endless, random, cap 24, one entity provoked every 30 s) showed
+the arena's own accounting drifting: the session reported `alive=24` while 28 entities carried the
+arena tag.
+
+### Any evidence?
+
+| Check | Result |
+|---|---|
+| Tagged entities at the worst sample | 28 with `alive=24` |
+| Composition | 7 slimes, four of them size 0 - the children of a splitting arena slime |
+| Why they were invisible to the cap | the children keep the parent's scoreboard tags but are new entities, and tagged mobs are exempt from despawning, so they were neither tracked nor removed |
+| After the fix, 5 verification rounds | `tagged == alive` every round, maximum exactly the cap (24) |
+| Adoption log | 34 adoptions and 5 cap discards during the run |
+| Server health | 20 ticks/s measured over 30 s, no exceptions, working set flat at 479-518 MB |
+
+### Any Founds?
+One sample pair (`tagged=16`, `alive=14`) is a sub-second transient rather than a defect: a dying
+slime is still selectable while the session has already pruned it. Steady-state samples match
+exactly.
+
+### Solutions
+`ArenaSession` keeps a stray bucket; `ArenaManager` adopts any tagged entity inside the wall once a
+second - into the wave that uses its entity type when there is one - and counts strays in
+`aliveTotal`, so the cap, the wall and the cleanup all cover them. Adoption is refused (and the
+entity discarded) once the arena is full, which makes the cap hard rather than aspirational.
+
+### FACTs
+A population cap that only counts what the code itself spawned is not a population cap. Anything
+that can clone itself - slime splitting is one example - has to be adopted into the accounting.
+
+version: v26.0-Alpha.2
+
+---
+
 ## {FACTTime: 2026.10.04-05:35:00} ArenaCoreVerified {FACTNum 2}
 
 GitCommitHashRange: initial (unmerged)

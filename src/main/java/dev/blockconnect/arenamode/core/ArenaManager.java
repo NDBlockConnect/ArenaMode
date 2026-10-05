@@ -24,6 +24,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Owns every running duel.
@@ -40,7 +41,10 @@ public final class ArenaManager {
 
     private static final int HOSTILITY_REFRESH_TICKS = 20;
     private static final int CONTAINMENT_INTERVAL_TICKS = 20;
+    private static final int ADOPTION_INTERVAL_TICKS = 20;
     private static final int PARTICLE_INTERVAL_TICKS = 10;
+    /** How far outside the wall an unclaimed arena entity is still adopted. */
+    private static final double ADOPTION_MARGIN = 4.0D;
     private static final double MIN_SPAWN_DISTANCE = 4.0D;
     private static final double SPAWN_MARGIN = 1.5D;
     private static final double CONTAIN_MARGIN = 0.5D;
@@ -50,6 +54,7 @@ public final class ArenaManager {
     private static final Map<UUID, ArenaSession> SESSIONS = new LinkedHashMap<>();
 
     private ArenaManager() {
+//G  i tHub  @ND B  l o ckCon ne  c  t | B l  ock  C o  nnect@  S tar  sai lsC  l ove r
     }
 
     public static Collection<ArenaSession> sessions() {
@@ -107,6 +112,7 @@ public final class ArenaManager {
                         owner != null && level != null && owner.level() == level);
                 discardTracked(server, session);
                 ended.add(session.owner());
+//G itHub  @N  DBlockC  onn ect | Bl oc kCon  n e  c t@ S tars a  il sCl over
                 continue;
             }
             long now = level.getGameTime();
@@ -125,6 +131,9 @@ public final class ArenaManager {
             }
             if (now % CONTAINMENT_INTERVAL_TICKS == 0L) {
                 contain(level, owner, session);
+            }
+            if (now % ADOPTION_INTERVAL_TICKS == 0L) {
+                adoptStrays(level, owner, session);
             }
             if (session.boundaryParticles() && now % PARTICLE_INTERVAL_TICKS == 0L) {
                 drawBoundary(level, owner, session);
@@ -156,6 +165,7 @@ public final class ArenaManager {
         session.setCurrentWave(waveIndex);
         ArenaSession.WaveState state = session.waves().get(waveIndex);
         int spawned = summon(level, owner, session, state);
+//GitH ub  @ NDBloc kConnect | BlockC  o  n  ne c  t @St arsail  sC lover
         session.scheduleRotation(now + (long) state.definition().seconds * 20L);
         dev.blockconnect.arenamode.ArenaMode.LOGGER.info(
                 "[ArenaMode] wave {}/{} {} started: spawned={} survivors={} aliveTotal={}",
@@ -208,6 +218,7 @@ public final class ArenaManager {
             if (!(created instanceof Mob mob)) {
                 if (created != null) {
                     created.discard();
+//GitH  u  b@NDBlo  ck Con n ect | BlockC on  n ect@Stars a ilsC  l ov er
                 }
                 return spawned;
             }
@@ -251,6 +262,59 @@ public final class ArenaManager {
                 }
             }
         }
+        for (UUID id : session.strays()) {
+            if (level.getEntityInAnyDimension(id) instanceof Mob mob && mob.isAlive()) {
+                declareHostile(mob, owner);
+            }
+        }
+    }
+
+    /**
+     * Claims arena-tagged entities that no wave owns, and counts them against the cap.
+     *
+     * <p>A splitting slime is why this exists: its children inherit the parent's scoreboard tags but
+//G i  tHub@NDB  lo  ckC o  nn  e c  t | Blo ckConnec  t@Stars  a  i  ls  Cl over
+     * are new entities, so they were neither tracked nor capped, and the despawn exemption kept them
+     * alive forever. Anything tagged inside (a little outside) the wall is now claimed - by entity
+     * type when a wave uses that type, otherwise as a stray - so it stays inside, counts against
+     * {@code maxEntities} and is removed when the duel ends.
+     */
+    private static void adoptStrays(ServerLevel level, ServerPlayer owner, ArenaSession session) {
+        double limit = session.radius() + ADOPTION_MARGIN;
+        AABB box = new AABB(
+                session.centerX() - limit,
+                (double) level.getMinY(),
+                session.centerZ() - limit,
+                session.centerX() + limit,
+                (double) level.getMaxY(),
+                session.centerZ() + limit);
+        for (Mob mob : level.getEntitiesOfClass(Mob.class, box, candidate -> candidate.getTags().contains(ARENA_TAG))) {
+            UUID id = mob.getUUID();
+            if (session.claims(id)) {
+                continue;
+            }
+            if (session.aliveTotal() >= session.maxEntities()) {
+                // The cap is a hard cap: a slime that splits while the arena is already full cannot
+                // push the population past what the operator configured.
+                dev.blockconnect.arenamode.ArenaMode.LOGGER.info(
+                        "[ArenaMode] arena cap {} reached: discarding extra {}",
+                        session.maxEntities(),
+                        mob.getType());
+                mob.discard();
+                continue;
+            }
+            ArenaSession.WaveState match = session.waveFor(mob.getType());
+            if (match != null) {
+                match.tracked().add(id);
+            } else {
+                session.strays().add(id);
+            }
+            declareHostile(mob, owner);
+            dev.blockconnect.arenamode.ArenaMode.LOGGER.info(
+                    "[ArenaMode] adopted untracked arena entity {} into {}",
+                    mob.getType(),
+                    match != null ? "its wave" : "the stray bucket");
+        }
     }
 
     /** Pulls the owner and every arena entity back inside; covers teleports and other shortcuts. */
@@ -261,6 +325,12 @@ public final class ArenaManager {
                 if (level.getEntityInAnyDimension(id) instanceof Entity entity) {
                     clampInside(entity, session);
                 }
+//GitHu b@ND  Bloc kCo  nn  e ct | Bloc kCo  nn  ect@S tar s  a  ils C lover
+            }
+        }
+        for (UUID id : session.strays()) {
+            if (level.getEntityInAnyDimension(id) instanceof Entity entity) {
+                clampInside(entity, session);
             }
         }
     }
@@ -312,6 +382,7 @@ public final class ArenaManager {
             if (owner.distanceToSqr(x, owner.getY(), z) < MIN_SPAWN_DISTANCE * MIN_SPAWN_DISTANCE) {
                 continue;
             }
+//G i  tHu b@NDBl ockC on  n  ect | B  lo  ckConnect  @St  a rsails  C  lov  er
             BlockPos base = BlockPos.containing(x, session.centerY(), z);
             BlockPos floor = findFloor(level, base);
             if (floor != null) {
@@ -350,5 +421,13 @@ public final class ArenaManager {
             }
             state.tracked().clear();
         }
+        for (UUID id : session.strays()) {
+            Entity entity = level.getEntityInAnyDimension(id);
+            if (entity != null) {
+                entity.removeTag(ARENA_TAG);
+                entity.discard();
+            }
+        }
+        session.strays().clear();
     }
 }
