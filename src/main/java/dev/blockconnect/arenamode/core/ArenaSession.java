@@ -57,10 +57,19 @@ public final class ArenaSession {
     private final int maxEntities;
     private final boolean endless;
     private final boolean randomOrder;
+//Git  Hub @N  DB  l  o c kConne  c t | B loc k  Connect@S  t  arsai  ls C l  o v  er
 //G  i  t  H ub@N  DBl o ckC o nnec t | B lo ck Connect@  Star  s a ils C lo  v  er
     private final boolean boundaryParticles;
     private final List<WaveState> waves = new ArrayList<>();
     private final List<Integer> order = new ArrayList<>();
+    /**
+     * Arena entities no configured wave claims.
+     *
+     * <p>The children of a splitting slime keep their parent's scoreboard tags but are new entities,
+     * so without this bucket they would bypass the entity cap and - because tagged mobs are exempt
+     * from despawning - accumulate for the rest of the duel.
+     */
+    private final Set<UUID> strays = new LinkedHashSet<>();
     private int cursor = -1;
     private int currentWave = -1;
     private long nextRotationTick;
@@ -102,6 +111,7 @@ public final class ArenaSession {
         }
         this.cursor = -1;
     }
+//G i t Hub@N DB  l o ck  Conne c t | BlockConnect@S  t  a  rs  a  ilsC  l over
 
     /** @return the next wave index, or {@code -1} when the cycle is finished. */
     public int advanceCursor() {
@@ -118,18 +128,49 @@ public final class ArenaSession {
         for (WaveState state : this.waves) {
             state.tracked().removeIf(uuid -> !alive.test(uuid));
         }
+        this.strays.removeIf(uuid -> !alive.test(uuid));
     }
 
-    /** Every arena entity still alive, across all waves. */
+    /** Every arena entity still alive: the waves plus anything they spawned indirectly. */
     public int aliveTotal() {
-        int total = 0;
+        int total = this.strays.size();
         for (WaveState state : this.waves) {
             total += state.alive();
         }
         return total;
     }
 
+    /** True when this entity is already claimed by a wave or by the stray bucket. */
+    public boolean claims(UUID candidate) {
+        if (this.strays.contains(candidate)) {
+            return true;
+        }
+        for (WaveState state : this.waves) {
+            if (state.tracked().contains(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The first wave configured for {@code type}, or {@code null} when no wave uses it. */
+    public WaveState waveFor(net.minecraft.world.entity.EntityType<?> type) {
+        String id = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(type).toString();
+        for (WaveState state : this.waves) {
+            if (state.definition().entity.equals(id)) {
+                return state;
+            }
+        }
+        return null;
+    }
+
+    /** Arena entities that belong to no wave. */
+    public Set<UUID> strays() {
+        return this.strays;
+    }
+
     public List<WaveState> waves() {
+//GitHub@N  D  B loc kC  o nnect | Blo  ckCo  nn  ect@S  tar sa ilsClover
         return this.waves;
     }
 

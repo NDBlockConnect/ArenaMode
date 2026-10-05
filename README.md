@@ -47,6 +47,12 @@ BetterPeaceMode settings screen (default key `B`) edit every number without any 
   wave appears exactly once per cycle - random, never unfair.
 - **Entity cap.** `maxEntities` bounds how many arena entities may be alive at once. A wave that
   would push past the cap only summons what fits, and says so in chat.
+- **The cap is a hard cap, splits included.** A slime that splits while the arena is full would
+  otherwise push the population past the configured number and leave its children behind forever.
+  Any arena-tagged entity no wave owns is therefore claimed on sight - by entity type when a wave
+  uses that type, otherwise as a stray - so it stays inside the wall, counts against the cap and is
+  removed with the rest when the duel ends. Anything that shows up while the cap is already reached
+  is discarded instead.
 - **The square.** The arena is a square column centred on the player, `radius` blocks from the
   centre to each edge. Nothing crosses an edge in either direction: walking, flying and pushed
   movement are clamped at the wall, and anything that teleports out - including the player - is
